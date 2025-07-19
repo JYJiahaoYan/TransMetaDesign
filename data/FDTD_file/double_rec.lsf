@@ -1,0 +1,90 @@
+switchtolayout;
+nm = 1e-9;
+
+#参数
+L1 = 500;
+L2 = 450;
+W1 = 200;
+W2 = 150;
+φ = 0;
+H = 200;
+Px = 600;
+Py = 600;
+
+select("double_rec");
+set("L1",L1*nm);
+set("L2",L2*nm);
+set("W1",W1*nm);
+set("W2",W2*nm);
+set("H",H*nm);
+set("first axis","z");
+set("rotation 1",φ);
+set("Px",Px*nm);
+set("Py",Py*nm);
+select("FDTD");
+set("x span",Px*nm);
+set("y span",Py*nm);
+
+select("source");
+set("x span",1000*nm);
+set("y span",1000*nm);
+set("wavelength start",400*nm);
+set("wavelength stop",800*nm);
+set("polarization angle",0);
+
+select("mesh");
+set("based on a structure",true);
+set("structure","double_rec");
+set("set maximum mesh step",1);
+set("dx",10*nm);
+set("dy",10*nm);
+set("dz",10*nm);
+data=readdata("double_rec_sim_data.csv");
+print(data(1,8));
+for(i=1;i<=100;i=i+1){
+    
+    switchtolayout;
+    L1 = data(i,2);
+    L2 = data(i,4);
+    W1 = data(i,1);
+    W2 = data(i,3);
+    φ = data(i,5);
+    H = 200;
+    Px = data(i,6);
+    Py = data(i,7);
+    index = data(i,8);
+    select("double_rec");
+    set("L1",L1*nm);
+    set("L2",L2*nm);
+    set("W1",W1*nm);
+    set("W2",W2*nm);
+    set("H",H*nm);
+    set("first axis","z");
+    set("rotation 1",φ);
+    set("Px",Px*nm);
+    set("Py",Py*nm);
+    select("FDTD");
+    set("x span",Px*nm);
+    set("y span",Py*nm);
+    
+    select("source");
+    set("x span",1000*nm);
+    set("y span",1000*nm);
+    set("wavelength start",400*nm);
+    set("wavelength stop",800*nm);
+    set("polarization angle",0);
+    select("mesh");
+    set("based on a structure",true);
+    set("structure","double_rec");
+    set("set maximum mesh step",1);
+    set("dx",10*nm);
+    set("dy",10*nm);
+    set("dz",10*nm);
+    run;
+    R = getresult("R","T");
+    R_W = R.lambda*1e9;
+    R_F = transmission("R");
+    write(".\double_rec_data\lambda"+num2str(index)+".txt",num2str(R_W));
+    write("./double_rec_data/"+num2str(index)+".txt",num2str(R_F));
+    
+}

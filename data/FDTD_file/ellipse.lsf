@@ -1,0 +1,84 @@
+switchtolayout;
+nm = 1e-9;
+
+#参数
+a = 450;
+b = 550;
+φ = 0;
+H = 200;
+Px = 800;
+Py = 800;
+
+select("Si");
+set("radius",a/2*nm);
+set("radius 2",b/2*nm);
+set("z min",0*nm);
+set("z max",H*nm);
+set("first axis","z");
+set("rotation 1",φ);
+
+select("FDTD");
+set("x span",Px*nm);
+set("y span",Py*nm);
+
+select("source");
+set("x span",1000*nm);
+set("y span",1000*nm);
+set("wavelength start",400*nm);
+set("wavelength stop",800*nm);
+
+select("mesh");
+set("based on a structure",true);
+set("structure","Si");
+set("set maximum mesh step",1);
+set("dx",10*nm);
+set("dy",10*nm);
+set("dz",10*nm);
+
+data=readdata("ellipse_sim_data.csv");
+
+for(i=1;i<=100;i=i+1){
+    switchtolayout;
+    nm = 1e-9;
+    
+    #参数
+    a = data(i,1);
+    b = data(i,2);
+    φ = data(i,3);
+    H = 200;
+    Px = data(i,4);
+    Py = data(i,5);
+    index = data(i,6);
+    
+    select("Si");
+    set("radius",a/2*nm);
+    set("radius 2",b/2*nm);
+    set("z min",0*nm);
+    set("z max",H*nm);
+    set("first axis","z");
+    set("rotation 1",φ);
+    
+    select("FDTD");
+    set("x span",Px*nm);
+    set("y span",Py*nm);
+    
+    select("source");
+    set("x span",1000*nm);
+    set("y span",1000*nm);
+    set("wavelength start",400*nm);
+    set("wavelength stop",800*nm);
+    
+    select("mesh");
+    set("based on a structure",true);
+    set("structure","Si");
+    set("set maximum mesh step",1);
+    set("dx",10*nm);
+    set("dy",10*nm);
+    set("dz",10*nm);
+    run;
+    R = getresult("R","T");
+    R_W = R.lambda*1e9;
+    R_F = transmission("R");
+    write("ellipse_data/lambda"+num2str(index)+".txt",num2str(R_W));
+    write("ellipse_data/"+num2str(index)+".txt",num2str(R_F));
+    }

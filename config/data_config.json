@@ -1,0 +1,10 @@
+{
+    "data_path" : ["data/simulation_data.pkl"],
+    "pretrain_data": "data/augment_data.pkl",
+    "finetune_data": "data/simulation_data.pkl",
+    "scaler": null,
+    "max_data_num": 500000,
+    "batch_size": 128,
+    "num_workers": 0
+
+}

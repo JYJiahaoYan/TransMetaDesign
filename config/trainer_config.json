@@ -1,0 +1,33 @@
+{
+    "trainer_name": "debug 1218",
+    "trainer_notes": "debug",
+    "max_epochs": 1000,
+    "min_steps": 10,
+    "max_output_len": 200,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "milestones": null,
+    "gamma": 0.5,
+    "max_eval_samples": 50,
+    "loss_func": "critic_loss",
+    "encoder_model": "ViT",
+    "early_stopping": {
+        "patience":3,
+        "mode":"min",
+        "monitor":"val/ce_loss",
+        "min_delta":1e-3
+    },
+    "checkpoint": {
+        "every_n_epochs":1,
+        "save_top_k":-1,
+        "save_weights_only":true,
+        "mode":"min",
+        "monitor":"train/ce_loss",
+        "filename":"{epoch}-{val/cer:.2f}"
+    },
+    "accelerator":"gpu",
+    "num_sanity_val_steps":0,
+    "beam_size" : 3,
+    "temperature" : 1.0
+
+}

@@ -1,0 +1,85 @@
+switchtolayout;
+nm = 1e-9;
+
+#参数
+R = 380;
+r = 105;
+θ = 20;
+φ = 0;
+H = 200;
+Px = 870;
+Py = 870;
+
+select("ring");
+set("R",R*nm);
+set("rr",r*nm);
+set("θ",θ);
+set("H",H*nm);
+set("first axis","z");
+set("rotation 1",φ);
+
+select("FDTD");
+set("x span",Px*nm);
+set("y span",Py*nm);
+#set("L1",L1*nm);
+
+select("source");
+set("x span",1000*nm);
+set("y span",1000*nm);
+set("wavelength start",400*nm);
+set("wavelength stop",800*nm);
+
+select("mesh");
+set("based on a structure",true);
+set("structure","ring");
+set("set maximum mesh step",1);
+set("dx",10*nm);
+set("dy",10*nm);
+set("dz",10*nm);
+
+data=readdata("ring_sim_data.csv");
+for(i=1;i<=(length(data)/7);i=i+1){
+    switchtolayout;
+    nm = 1e-9;
+    
+    #参数
+    R = data(i,1);
+    r = data(i,2);
+    θ = data(i,3);
+    φ = data(i,4);
+    H = 200;
+    Px = data(i,5);
+    Py = data(i,6);
+    index = data(i,7);
+    
+    select("ring");
+    set("R",R*nm);
+    set("rr",r*nm);
+    set("θ",θ);
+    set("H",H*nm);
+    set("first axis","z");
+    set("rotation 1",φ);
+    
+    select("FDTD");
+    set("x span",Px*nm);
+    set("y span",Py*nm);
+    
+    select("source");
+    set("x span",1000*nm);
+    set("y span",1000*nm);
+    set("wavelength start",400*nm);
+    set("wavelength stop",800*nm);
+    select("mesh");
+    set("based on a structure",true);
+    set("structure","ring");
+    set("set maximum mesh step",1);
+    set("dx",10*nm);
+    set("dy",10*nm);
+    set("dz",10*nm);
+    run;
+    R = getresult("R","T");
+    R_W = R.lambda*1e9;
+    R_F = transmission("R");
+    write(".\ring_data\lambda"+num2str(index)+".txt",num2str(R_W));
+    write("./ring_data/"+num2str(index)+".txt",num2str(R_F));
+    }

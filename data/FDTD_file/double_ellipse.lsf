@@ -1,0 +1,114 @@
+switchtolayout;
+nm = 1e-9;
+#参数
+W = 120;
+L = 300;
+a = 17.5;
+H = 200;
+Px = 500;
+Py = 350;
+φ = 0;
+
+#修改形状
+select("structure::Cl");
+set("z min",0);
+set("z max",H*nm);
+set("radius",(W/2)*nm);
+set("radius 2",(L/2)*nm);
+set("rotation 1",a);
+set("x",-(Px/4)*nm);#使其放在一半的中心
+select("structure::Cr");
+set("z min",0);
+set("z max",H*nm);
+set("radius",(W/2)*nm);
+set("radius 2",(L/2)*nm);
+set("rotation 1",-a);
+set("x",(Px/4)*nm);#使其放在一半的中心
+
+select("structure");
+set("first axis","z");
+set("rotation 1",φ);
+
+#修改周期
+select("FDTD");
+set("x span",Px*nm);
+set("y span",Py*nm);
+select("mesh");
+set("based on a structure",true);
+set("structure","structure");
+set("set maximum mesh step",1);
+set("dx",10*nm);
+set("dy",10*nm);
+set("dz",10*nm);
+#修改光源
+select("source");
+set("wavelength start",400*nm);
+set("wavelength stop",800*nm);
+set("polarization angle",0);
+#设置频率点
+setglobalmonitor("frequency points",500);
+########################
+########读取数据############
+########################
+data = readdata(".\double_ellipse_sim_data.csv");
+########################
+#---------WX-----------#
+########################
+for(i=1;i<=100;i=i+1){
+    switchtolayout;
+    #参数
+    W = data(i,1);
+    L = data(i,2);
+    a = data(i,3);
+    H = 200;
+    Px = data(i,5);
+    Py = data(i,6);
+    φ = data(i,4);
+    index = data(i,7);
+    #修改形状
+    select("structure::Cl");
+    set("z min",0);
+    set("z max",H*nm);
+    set("radius",(W/2)*nm);
+    set("radius 2",(L/2)*nm);
+    set("rotation 1",a);
+    set("x",-(Px/4)*nm);#使其放在一半的中心
+    select("structure::Cr");
+    set("z min",0);
+    set("z max",H*nm);
+    set("radius",(W/2)*nm);
+    set("radius 2",(L/2)*nm);
+    set("rotation 1",-a);
+    set("x",(Px/4)*nm);#使其放在一半的中心
+    
+    select("structure");
+    set("first axis","z");
+    set("rotation 1",φ);
+    
+    #修改周期
+    select("FDTD");
+    set("x span",Px*nm);
+    set("y span",Py*nm);
+    select("mesh");
+    set("based on a structure",true);
+    set("structure","structure");
+    set("set maximum mesh step",1);
+    set("dx",10*nm);
+    set("dy",10*nm);
+    set("dz",10*nm);
+    #修改光源
+    select("source");
+    set("wavelength start",400*nm);
+    set("wavelength stop",800*nm);
+    set("polarization angle",0);
+    #设置频率点
+    setglobalmonitor("frequency points",500);
+    run;
+    #####保存数据#####
+    R = getresult("R","T");
+    R_W = R.lambda*1e9;
+    R_F = transmission("R");
+    write(".\double_ellipse_data\lambda"+num2str(index)+".txt",num2str(R_W));
+    write("./double_ellipse_data/"+num2str(index)+".txt",num2str(R_F));
+
+    }
