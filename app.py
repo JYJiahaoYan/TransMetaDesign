@@ -8,8 +8,8 @@ import matplotlib
 matplotlib.use('Agg')
 app = Flask(__name__)
 
-# 初始化Inference对象
-model_path = r"D:\codes\正式代码\transformer_for_metasurface\OpticalGPT\debug 1218\model\epoch=52-val\cer=0.20.ckpt"
+# Initialize Inference object
+model_path = r"D:\\codes\\transformer_for_metasurface\\xxxx.ckpt"
 config = Config()
 inference = Inference(model_path, config)
 forward_model_path = r"data/forward_model.pth"

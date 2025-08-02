@@ -12,24 +12,22 @@ import numpy as np
 import torch
 import pickle
 from model_predict import evaluate_inverse
-# os.environ["HTTP_PROXY"] = "http://
-# os.environ["HTTPS_PROXY"] = "http://
-# os.environ["WANDB_MODE"]="offline"
-# 设置全局随机种子
-seed_value = 42  # 你可以根据需要选择一个固定的种子值
+
+
+seed_value = 42
 random.seed(seed_value)
 np.random.seed(seed_value)
 torch.manual_seed(seed_value)
 
 def main(config):
-    model_path = "OpticalGPT/"+config.trainer_cfg.trainer_name+"/model"
-    log_path = "OpticalGPT/"+config.trainer_cfg.trainer_name+"/log"
-    backup_path = "OpticalGPT/"+config.trainer_cfg.trainer_name+"/backup"
+    model_path = "Optical/"+config.trainer_cfg.trainer_name+"/model"
+    log_path = "Optical/"+config.trainer_cfg.trainer_name+"/log"
+    backup_path = "Optical/"+config.trainer_cfg.trainer_name+"/backup"
     for path in [model_path,log_path,backup_path]:
         create_folder_if_not_exists(path)
 
-    wandb.login(key="a2481ca949472cf0a93ab773c7b80f2c01001f0e")
-    wandb.init(project='OpticalGPT - test', name=config.trainer_cfg.trainer_name, notes=config.trainer_cfg.trainer_notes, save_code=True,dir=log_path)
+    wandb.login(key="xxxxx")
+    wandb.init(project='Optical - test', name=config.trainer_cfg.trainer_name, notes=config.trainer_cfg.trainer_notes, save_code=True,dir=log_path)
 
 
     datamodule = CustomDataLoader(
@@ -64,7 +62,7 @@ def main(config):
             min_delta=config.trainer_cfg.early_stopping["min_delta"],
         )
     )
-    logger = WandbLogger(project="OpticalGPT",name=config.trainer_cfg.trainer_name,notes =config.trainer_cfg.trainer_notes,save_code=True,version=config.trainer_cfg.trainer_name+"version")
+    logger = WandbLogger(project="Optical",name=config.trainer_cfg.trainer_name,notes =config.trainer_cfg.trainer_notes,save_code=True,version=config.trainer_cfg.trainer_name+"version")
 
 
     trainer = Trainer(

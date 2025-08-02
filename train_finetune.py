@@ -14,27 +14,22 @@ import torch
 from model_predict import evaluate_inverse
 import pickle
 
-# os.environ["HTTP_PROXY"] = "http://
-# os.environ["HTTPS_PROXY"] = "http://
-# os.environ["WANDB_MODE"]="offline"
-# 设置全局随机种子
-seed_value = 42  # 你可以根据需要选择一个固定的种子值
+seed_value = 42
 random.seed(seed_value)
 np.random.seed(seed_value)
 torch.manual_seed(seed_value)
 
 
 def main(config):
-    model_path = "OpticalGPT/" + config.pretrain_cfg.trainer_name + "/model"
-    log_path = "OpticalGPT/" + config.pretrain_cfg.trainer_name + "/log"
-    backup_path = "OpticalGPT/" + config.pretrain_cfg.trainer_name + "/backup"
+    model_path = "Optical/" + config.pretrain_cfg.trainer_name + "/model"
+    log_path = "Optical/" + config.pretrain_cfg.trainer_name + "/log"
+    backup_path = "Optical/" + config.pretrain_cfg.trainer_name + "/backup"
     for path in [model_path, log_path, backup_path]:
         create_folder_if_not_exists(path)
 
-    wandb.login(key="a2481ca949472cf0a93ab773c7b80f2c01001f0e")
-    wandb.init(project='OpticalGPT - FT', name=config.pretrain_cfg.trainer_name, notes=config.pretrain_cfg.trainer_notes, save_code=True, dir=log_path)
+    wandb.login(key="xxxxx")
+    wandb.init(project='Optical - FT', name=config.pretrain_cfg.trainer_name, notes=config.pretrain_cfg.trainer_notes, save_code=True, dir=log_path)
 
-    # 预训练数据模块
     pretrain_datamodule = CustomDataLoader(
         config.data_cfg.pretrain_data,
         max_num=config.data_cfg.max_data_num,
@@ -46,7 +41,6 @@ def main(config):
 
     opticalModel = OpticalModel(MODEL_CONFIG,finetune_flag="pretrain")
 
-    # 预训练回调
 
     callbacks = [
         ModelCheckpoint(
@@ -66,7 +60,7 @@ def main(config):
         )
     ]
 
-    logger = WandbLogger(project="OpticalGPT - FT", name=config.pretrain_cfg.trainer_name, notes=config.pretrain_cfg.trainer_notes, save_code=True, version=config.pretrain_cfg.trainer_name + "version")
+    logger = WandbLogger(project="Optical - FT", name=config.pretrain_cfg.trainer_name, notes=config.pretrain_cfg.trainer_notes, save_code=True, version=config.pretrain_cfg.trainer_name + "version")
 
     trainer = Trainer(
         accelerator= config.pretrain_cfg.accelerator,
@@ -78,15 +72,12 @@ def main(config):
         logger=logger,
     )
 
-    # 进行预训练
-    print("开始预训练...")
+    print("Start pretraining...")
     trainer.fit(opticalModel, datamodule=pretrain_datamodule)
 
-    # 保存预训练模型
-    print("保存预训练模型...")
+    print("Save pretrained model...")
     trainer.save_checkpoint(os.path.join(model_path, "pretrained_model.ckpt"))
 
-    # 微调数据模块
     fine_tune_datamodule = CustomDataLoader(
         config.data_cfg.finetune_data,
         max_num=config.data_cfg.max_data_num,
@@ -96,17 +87,11 @@ def main(config):
     )
     fine_tune_datamodule.setup()
 
-    # 重新初始化模型以进行微调
-    # opticalModel = OpticalModel(MODEL_CONFIG,finetune_flag="finetune")
-    # opticalModel.load_from_checkpoint(os.path.join(model_path, "pretrained_model.ckpt"),config=MODEL_CONFIG,finetune_flag="finetune")
-    # opticalModel.load_from_checkpoint(r"OpticalGPT/debug01/model/epoch=31-val/cer=0.14.ckpt", config=MODEL_CONFIG,
-    #                                   finetune_flag="pretrain")
+
     opticalModel.finetune_flag = "finetune"
     config.trainer_cfg = config.finetune_cfg
     print(config.trainer_cfg)
     opticalModel.loss_fn = MSE_Loss(ignore_index=config.tokenizer.pad_index, tokenlizer=config.tokenizer)
-
-    # 更新回调（可以自定义微调相关的设置）
 
     fine_tune_callbacks = [
         ModelCheckpoint(
@@ -126,8 +111,8 @@ def main(config):
         )
     ]
 
-    # 微调训练
-    print("开始微调...")
+
+    print("Start finetuning...")
     trainer = Trainer(
         accelerator= config.finetune_cfg.accelerator,
         max_epochs=config.finetune_cfg.max_epochs,
@@ -140,10 +125,10 @@ def main(config):
     trainer.fit(opticalModel, datamodule=fine_tune_datamodule)
     # trainer.test(opticalModel, datamodule=fine_tune_datamodule)
 
-    # 备份代码
     backup_code(os.getcwd(), backup_path, config.pretrain_cfg.trainer_name, ['config.py', 'model.py', 'dataloader.py', 'dataset.py', 'evaluate.ipynb', 'loss_func.py', 'optical_model.py', 'positional_encoding.py', 'tokenlizer.py', 'train.py', 'utils.py', 'condition.py'], config.pretrain_cfg.trainer_notes)
     predict_data = evaluate_inverse(opticalModel.model,config.tokenizer,fine_tune_datamodule.test_dataset,config)
     pickle.dump(predict_data,open(os.path.join(model_path,"predict.pkl"),"wb"))
+
 if __name__ == "__main__":
     MODEL_CONFIG = FTConfig()
     main(MODEL_CONFIG)

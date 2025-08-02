@@ -171,7 +171,7 @@ class Inerse_Decoder(nn.Module):
     def __init__(self, config):
         super().__init__()
 
-        self.max_output_len = config.trainer_cfg.max_output_len + 2  # 这里+2的目的是给开始和结束标识符留出位置
+        self.max_output_len = config.trainer_cfg.max_output_len + 2
         self.d_model = config.model_cfg.d_model
         self.vocab_size = config.model_cfg.vocab_size
         self.heads = config.model_cfg.heads
@@ -183,7 +183,7 @@ class Inerse_Decoder(nn.Module):
         self.eos_index = config.eos_index
         self.pad_index = config.pad_index
 
-        self.word_positional_encoder = PositionalEncoding(self.d_model, max_len=self.max_output_len)  # 对标签进行位置编码
+        self.word_positional_encoder = PositionalEncoding(self.d_model, max_len=self.max_output_len)
 
         self.embedding  = InputEmbeddings(self.d_model, self.vocab_size)
         self.y_mask = generate_square_subsequent_mask(self.max_output_len) # 上三角掩码
@@ -196,21 +196,27 @@ class Inerse_Decoder(nn.Module):
         self.fc = nn.Linear(self.d_model, self.vocab_size)
 
 
-    def forward(self,y, encoded_x):
+    def forward(self, y, encoded_x):
 
-        # 把标签转为适合进行embedding的形式
+        # Convert the labels to a format suitable for embedding
         y = y.permute(1, 0)
-        # 对每一个标签的token_id转换为这个编号对应的嵌入向量，嵌入向量反映了各个编号代表的符号之间的语义关系。乘以d_model的开方使得embedding matrix的方差是1。输出形状为(Sy, batch_size, d_model)
+        # Convert each token ID in the labels to its corresponding embedding vector. 
+        # Embedding vectors reflect the semantic relationships between symbols represented by different IDs. 
+        # Multiply by the square root of d_model to ensure the variance of the embedding matrix is 1. 
+        # Output shape: (Sy, batch_size, d_model)
         y = self.embedding(y)
-        # 嵌入位置编码
+        # Embed positional encoding
         y = self.word_positional_encoder(y)
         Sy = y.shape[0]
-        # 生成一个Sy*Sy，左下角是0，右上角是-inf的上三角掩码，起主要作用是对未来信息进行遮掩。
+        # Generate an Sy×Sy upper triangular mask where the lower-left part is 0 and the upper-right part is -inf.
+        # Its main role is to mask future information.
         y_mask = self.y_mask[:Sy, :Sy].type_as(encoded_x)
-        # 对解码器模块进行前向传播，输出形状为(Sy,batch_size,d_model)
+        # Perform forward propagation through the decoder module. 
+        # Output shape: (Sy, batch_size, d_model)
         # output = self.transformer_decoder(y.permute(1,0,2), encoded_x, src_mask=None, tgt_mask=y_mask)
         output = self.transformer_decoder(y, encoded_x, y_mask)
-        # 经过一个线性层，得到每个token的概率预测。输出形状为(Sy, batch_size, num_classes)
+        # Pass through a linear layer to get probability predictions for each token. 
+        # Output shape: (Sy, batch_size, num_classes)
         output = self.fc(output)
 
         return output
@@ -293,13 +299,12 @@ class Optical_GPT(nn.Module):
     def __init__(
             self,config) -> None:
         super().__init__()
-        self.max_output_len = config.trainer_cfg.max_output_len + 2  # 这里+2的目的是给开始和结束标识符留出位置
+        self.max_output_len = config.trainer_cfg.max_output_len + 2
         self.sos_index = config.sos_index
         self.eos_index = config.eos_index
         self.pad_index = config.pad_index
         self.beam_size = config.trainer_cfg.beam_size
         self.temperature = config.trainer_cfg.temperature
-        # 编码器
         if config.trainer_cfg.encoder_model == "ViT":
             self.inverse_encoder = ViT_Encoder(config)
         elif config.trainer_cfg.encoder_model == "Transformer":
@@ -308,13 +313,11 @@ class Optical_GPT(nn.Module):
             self.inverse_encoder = CNN_Encoder(config)
         else:
             raise ValueError("Invalid encoder model name, your input should be 'ViT', 'Transformer' or 'CNN'.")
-        # 解码器
         self.inverse_decoder = Inerse_Decoder(config)
 
 
     def forward(self, w: Tensor,d:Tensor, o: Tensor = None) -> Tensor:
         """
-        前向传播
         inverse : d: wave_data, w: words, o: para_output
         """
         if o is None:
@@ -331,7 +334,6 @@ class Optical_GPT(nn.Module):
         output_indices = torch.full((batch_size, self.max_output_len), self.pad_index).type_as(w).long()
         output_indices[:, 0] = self.sos_index
 
-        # 初始化 Beam Search
         beams = [(output_indices[:, :1], torch.zeros(batch_size).type_as(w))]  # [(seq, score)]
 
         for Sy in range(1, self.max_output_len):
@@ -343,18 +345,15 @@ class Optical_GPT(nn.Module):
 
                 for k in range(beam_size):
                     new_seq = torch.cat([seq, topk_indices[:, k:k+1]], dim=-1)
-                    new_score = score + topk_probs[:, k].log()  # 使用对数概率避免数值下溢
+                    new_score = score + topk_probs[:, k].log() 
                     candidates.append((new_seq, new_score))
 
-            # 筛选 top beam_size 个候选
             candidates = sorted(candidates, key=lambda x: x[1].sum(), reverse=True)
             beams = candidates[:beam_size]
 
-            # 检查是否所有序列都以EOS结尾
             if all((seq[:, -1] == self.eos_index).all() for seq, _ in beams):
                 break
 
-        # 选择得分最高的序列
         best_seq, _ = beams[0]
         eos_positions = first_element(best_seq, self.eos_index)
         for i in range(batch_size):

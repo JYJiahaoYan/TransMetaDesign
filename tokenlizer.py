@@ -50,7 +50,6 @@ class Tokenizer:
         self.ignore_indices = {self.pad_index, self.sos_index, self.eos_index, self.unk_index}
 
     def __len__(self):
-        # 特��标识符加上字符集的长度
         return len(self.token_to_index) + self.offset
 
     def char_tokenize(self, text: str) -> List[str]:

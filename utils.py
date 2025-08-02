@@ -9,11 +9,10 @@ from torch.utils.data import random_split
 import shutil
 import time
 # from data_generate.data_generate_image import draw_rectangle,draw_circle,draw_cross,draw_ellipse,draw_ring,draw_rotated_polygon
+
 def generate_square_subsequent_mask(size: int) -> Tensor:
     """
-    参考代码：https://github.com/full-stack-deep-learning/fsdl-text-recognizer-2021-labs/blob/36cab9d6dcdad84e3d1a69df5ab796cbf689c115/lab9/text_recognizer/models/transformer_util.py
-
-    生成上三角掩码矩阵
+    refer：https://github.com/full-stack-deep-learning/fsdl-text-recognizer-2021-labs/blob/36cab9d6dcdad84e3d1a69df5ab796cbf689c115/lab9/text_recognizer/models/transformer_util.py
     """
     mask = (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
     mask = mask.float().masked_fill(mask == 0, float("-inf")).masked_fill(mask == 1, float(0.0))
@@ -60,21 +59,16 @@ def extract_type(data):
     return type_list
 
 def backup_code(source_dir,backup_dir, backup_name, file_list = None,note=None):
-    # 获取当前时间
     current_time = time.strftime("%Y%m%d_%H%M%S")
-    # 构建备份文件名
     backup_filename = f"{backup_name}_{current_time}"
-    # 确保备份目录存在，如果不存在则创建
     if not os.path.exists(backup_dir):
         os.makedirs(backup_dir)
 
-    # 如果文件列表为空，则备份整个源代码目录
     if file_list is None:
         source_files = os.listdir(source_dir)
     else:
         source_files = file_list
 
-    # 复制源代码到备份目录
     try:
         backup_path = os.path.join(backup_dir, backup_filename)
         os.makedirs(backup_path)
@@ -93,15 +87,6 @@ def pair(t):
     return t if isinstance(t, tuple) else (t, t)
 
 def create_folder_if_not_exists(folder_path):
-    """
-    检查文件夹是否存在，不存在则创建文件夹
-
-    参数：
-    folder_path (str): 要检查的文件夹路径
-
-    返回：
-    None
-    """
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
         print(f"文件夹 '{folder_path}' 不存在，已创建。")

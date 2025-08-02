@@ -174,12 +174,6 @@ def draw_shape_by_type(shape_type, args):
         raise ValueError(f"Unsupported shape type: {shape_type}")
 
 
-# Main Function
-# todo there are some issues. First, I would divide main functions maybe named as main_forward to a new .py file,
-# todo and leave this file only for forward model to have a clear division.
-# todo second, changing size parameters to images is improper. You've created a lot of useless pixels and dramatically increased the amount of computation
-# todo in model_evalue_plot, you used RGB images and converted to torch tensor, which further increased the computation.
-# todo if you insisted to use images, I think binary 0-1 arrays would be enough to represent structures.
 def main(pred_data_path, model_path):
     types, args, labels = preprocess_evaluate(pred_data_path)
 
@@ -204,6 +198,6 @@ def main(pred_data_path, model_path):
 # Example usage:
 if __name__ == "__main__":
     preds = main(
-        r"D:\codes\optical_model_final\eval_data_VIT3_epoch_12.pkl",
-        r'D:\codes\data_autmention_model_final\runs\2024082301\model\2024082301_best.pth'
+        r"D:\\codes\\optical_model_final\\eval_data_VIT3_epoch_12.pkl",
+        r'D:\\codes\\data_autmention_model_final\\runs\\xxxx_best.pth'
     )

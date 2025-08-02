@@ -72,7 +72,7 @@ if __name__ == '__main__':
     from tokenlizer import Tokenizer
     from config import Config
     MODEL_CONFIG = Config()
-    model_path = r"D:\codes\transformer_for_metasurface\OpticalGPT\VIT07\model\epoch=8-val\cer=0.17.ckpt"
+    model_path = r"D:\\codes\\xxxx.ckpt"
     device = DEVICE
     optical_model = OpticalModel.load_from_checkpoint(model_path,config = MODEL_CONFIG).to(device)
     optical_model.freeze()

@@ -193,7 +193,6 @@ class Critic_Loss(nn.Module):
             input_dim = 8
 
         scaler = MinMaxScaler()
-        # 手动设置缩放参数
         scaler.min_ = min_val
         scaler.scale_ = 1 / (max_val - min_val)
 
@@ -208,6 +207,7 @@ class Critic_Loss(nn.Module):
         interpolator = interp1d(np.linspace(400, 800, 500), wave, kind='cubic')
         new_wave = interpolator(np.linspace(400, 800, 100))
         return new_wave
+    
     def forward(self, logits: Tensor, targets: Tensor, wave) -> Tensor:
         inverse_loss = 0
         targets = targets[:, 1:]

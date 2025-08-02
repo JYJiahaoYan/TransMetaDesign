@@ -16,9 +16,6 @@ class BaseDataset(Dataset):
         return len(self.filenames)
 
     def __getitem__(self, idx: int):
-        """
-        对于给定的序号idx，返回对应的文件名和对应的光谱数据
-        """
         return self.filenames[idx], self.wavelengths[idx]
 
 class ConditionDataset(Dataset):

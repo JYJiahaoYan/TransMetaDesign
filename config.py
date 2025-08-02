@@ -113,6 +113,7 @@ class Config(BaseConfig):
             self.model_cfg = TransformerConfig()
         else:
             assert ValueError("Invalid encoder model, only ViT, CNN, and Transformer are supported.")
+
 class FTConfig(BaseConfig):
     def __init__(self, config_path=None):
         super().__init__(config_path)
